@@ -18,12 +18,28 @@ const Document = async ({ params: { id } }: SearchParamProps) => {
   const userIds = Object.keys(room.usersAccesses);
   const users = await getClerkUsers({ userIds });
 
-  const usersData = users.map((user: User) => ({
-    ...user,
-    userType: room.usersAccesses[user.email]?.includes('room:write')
-      ? 'editor'
-      : 'viewer'
-  }))
+  // const usersData = users.map((user: User) => ({
+  //   ...user,
+  //   userType: room.usersAccesses[user.email]?.includes('room:write')
+  //     ? 'editor'
+  //     : 'viewer'
+  // }))
+  const usersData = users.map((user: User) => {
+    if (!user || !user.email) {
+      console.warn("User or user.email is undefined", user);
+      return {
+        ...user,
+        userType: 'viewer', // Default to viewer if user or user.email is invalid
+      };
+    }
+  
+    const userAccess = room.usersAccesses?.[user.email];
+  
+    return {
+      ...user,
+      userType: userAccess?.includes('room:write') ? 'editor' : 'viewer',
+    };
+  });
 
   const currentUserType = room.usersAccesses[clerkUser.emailAddresses[0].emailAddress]?.includes('room:write') ? 'editor' : 'viewer';
 
